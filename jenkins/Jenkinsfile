@@ -21,6 +21,15 @@ pipeline {
             }
         }
 
+        stage('Unit Test') {
+            steps {
+                script {
+                    // Run unit tests
+                    sh 'docker run --rm $DOCKER_IMAGE go test -v ./...'
+                }
+            }
+        }
+
         stage('Deploy with Docker Compose') {
             steps {
                 script {
