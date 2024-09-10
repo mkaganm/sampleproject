@@ -1,4 +1,4 @@
-# Sample Fiber Web Application
+# Sample Fiber API Application
 
 This is a simple web application built with [Fiber](https://gofiber.io), a web framework for Go. The application provides a basic RESTful API to manage users.
 
