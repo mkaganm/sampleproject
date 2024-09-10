@@ -1,17 +1,21 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = "sampleproject:latest"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/kullaniciAdi/projeAdi.git'
+                git 'https://github.com/mkaganm/sampleproject.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t myapp:latest .'
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
@@ -34,12 +38,12 @@ pipeline {
             steps {
                 script {
                     sh """
-                    if [ \$(docker ps -q -f name=myapp) ]; then
-                        docker stop myapp
-                        docker rm myapp
+                    if [ \$(docker ps -q -f name=sampleproject) ]; then
+                        docker stop sampleproject
+                        docker rm sampleproject
                     fi
                     """
-                    sh "docker run -d --name myapp -p ${env.PORT}:${env.PORT} myapp:latest"
+                    sh "docker run -d --name sampleproject -p ${env.PORT}:${env.PORT} $DOCKER_IMAGE"
                 }
             }
         }
