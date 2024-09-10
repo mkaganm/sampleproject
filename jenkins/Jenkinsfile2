@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        BUILDER_IMAGE = "sampleproject-builder"
+    }
+
+    triggers {
+        // Uncomment one of the trigger options:
+
+        // Every 30 minutes
+        cron('H/30 * * * *')
+
+        // Every minute (Uncomment to activate)
+        // cron('* * * * *')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/mkaganm/sampleproject.git'
+            }
+        }
+
+        stage('Build Docker Image for Testing') {
+            steps {
+                script {
+                    // Build the Docker image specifically for running tests
+                    sh 'docker build --target builder -t $BUILDER_IMAGE .'
+                }
+            }
+        }
+
+        stage('Run Unit Tests in Isolation') {
+            steps {
+                script {
+                    // Run the unit tests in a separate Docker container without affecting deployed services
+                    sh 'docker run --rm $BUILDER_IMAGE go test -v ./...'
+                }
+            }
+        }
+    }
+}

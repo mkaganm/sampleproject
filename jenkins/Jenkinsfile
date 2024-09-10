@@ -3,29 +3,48 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "sampleproject:latest"
+        BUILDER_IMAGE = "sampleproject-builder"
         COMPOSE_FILE = "docker-compose.yml"
+    }
+
+    parameters {
+        // Branch parameter to allow user to specify which branch to build
+        string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Branch to build from')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/mkaganm/sampleproject.git'
+                script {
+                    // Use the provided branch parameter for checkout
+                    git branch: params.BRANCH_NAME, url: 'https://github.com/mkaganm/sampleproject.git'
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker-compose build'
+                    // Build the Docker image for the build stage
+                    sh 'docker build --target builder -t $BUILDER_IMAGE .'
                 }
             }
         }
 
-        stage('Unit Test') {
+        stage('Run Unit Tests') {
             steps {
                 script {
-                    // Run unit tests
-                    sh 'docker run --rm $DOCKER_IMAGE go test -v ./...'
+                    // Run the unit tests inside the builder image
+                    sh 'docker run --rm $BUILDER_IMAGE go test -v ./...'
+                }
+            }
+        }
+
+        stage('Build Final Docker Image') {
+            steps {
+                script {
+                    // Build the final Docker image for deployment
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
