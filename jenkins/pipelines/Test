@@ -5,18 +5,20 @@ pipeline {
         BUILDER_IMAGE = "sampleproject-builder"
     }
 
-    parameters {
-        // Allow the user to specify the branch to build
-        string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Branch to build from')
+    triggers {
+        // Uncomment one of the trigger options:
+
+        // Every 30 minutes
+        cron('H/30 * * * *')
+
+        // Every minute (Uncomment to activate)
+        // cron('* * * * *')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                script {
-                    // Checkout the specified branch
-                    git branch: params.BRANCH_NAME, url: 'https://github.com/mkaganm/sampleproject.git'
-                }
+                git 'https://github.com/mkaganm/sampleproject.git'
             }
         }
 
