@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+
+    environment {
+        BUILDER_IMAGE = "sampleproject-builder"
+    }
+
+    parameters {
+        // Allow the user to specify the branch to build
+        string(name: 'BRANCH_NAME', defaultValue: 'master', description: 'Branch to build from')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    // Checkout the specified branch
+                    git branch: params.BRANCH_NAME, url: 'https://github.com/mkaganm/sampleproject.git'
+                }
+            }
+        }
+
+        stage('Build Docker Image for Testing') {
+            steps {
+                script {
+                    // Build the Docker image specifically for running tests
+                    sh 'docker build --target builder -t $BUILDER_IMAGE .'
+                }
+            }
+        }
+
+        stage('Run Unit Tests in Isolation') {
+            steps {
+                script {
+                    // Run the unit tests in a separate Docker container without affecting deployed services
+                    sh 'docker run --rm $BUILDER_IMAGE go test -v ./...'
+                }
+            }
+        }
+    }
+}
