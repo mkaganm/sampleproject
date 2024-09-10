@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = "sampleproject:latest"
+        COMPOSE_FILE = "docker-compose.yml"
     }
 
     stages {
@@ -15,39 +16,19 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t $DOCKER_IMAGE .'
+                    sh 'docker-compose build'
                 }
             }
         }
 
-        stage('Load Environment Variables') {
+        stage('Deploy with Docker Compose') {
             steps {
                 script {
-                    def envFile = readFile('.env').trim()
-                    def lines = envFile.split('\n')
-                    def envVars = []
-                    lines.each { line ->
-                        def parts = line.split('=')
-                        if (parts.length == 2) {
-                            envVars.add("${parts[0]}=${parts[1]}")
-                        }
-                    }
-                    withEnv(envVars) {
-                        // Deploy stage now has access to the environment variables
-                        stage('Deploy') {
-                            steps {
-                                script {
-                                    sh """
-                                    if [ \$(docker ps -q -f name=sampleproject) ]; then
-                                        docker stop sampleproject
-                                        docker rm sampleproject
-                                    fi
-                                    """
-                                    sh "docker run -d --name sampleproject -p ${env.PORT}:${env.PORT} $DOCKER_IMAGE"
-                                }
-                            }
-                        }
-                    }
+                    // Stop any existing services
+                    sh "docker-compose down"
+
+                    // Start the services defined in the docker-compose.yml
+                    sh "docker-compose up -d"
                 }
             }
         }
